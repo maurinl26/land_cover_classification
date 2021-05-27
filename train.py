@@ -32,14 +32,13 @@ if __name__ == "__main__":
     MASKS = "./dataset/train/masks"
     SAMPLES = "./labels/train_labels_GY1QjFw.csv"
 
-    train_samples = pd.read_csv(SAMPLES)
+    samples = pd.read_csv(SAMPLES)
 
     # Train test split (could be improved in k fold validation)
-    train_samples, X_val = train_test_split(
-        train_samples, train_size=0.8, random_state=42
+    train_samples, val_samples = train_test_split(
+        samples, train_size=0.8, random_state=42
     )
 
-    # train_set = SleepApneaDataset(X_TRAIN_PATH, Y_TRAIN_PATH)
     BATCH_SIZE = 128
     CHANNELS = 4
     DROPOUT = 0.1
@@ -56,14 +55,14 @@ if __name__ == "__main__":
     )
 
     train_loader = torch.utils.data.DataLoader(
-        dataset=Dataset('/labels/train_images_Es8kvkp.csv', TRAIN_IMAGES, TRAIN_MASKS),
+        dataset=Dataset(train_samples, IMAGES, MASKS),
         batch_size=BATCH_SIZE,
         shuffle=True,
         num_workers=4,
     )
 
     val_loader = torch.utils.data.DataLoader(
-        dataset=Dataset('/labels/train_images_Es8kvkp.csv', TRAIN_IMAGES, TRAIN_MASKS),
+        dataset=Dataset(val_samples, IMAGES, MASKS),
         batch_size=BATCH_SIZE,
         shuffle=True,
         num_workers=4,
@@ -104,7 +103,6 @@ if __name__ == "__main__":
         # testing
         model.eval()
         loss_val = 0
-        min_loss = 2
 
         with torch.no_grad():
             for batch_idx, (x, target) in enumerate(val_loader):
@@ -115,15 +113,6 @@ if __name__ == "__main__":
 
                 loss_val += loss.item()
 
-                """
-                for i, t in enumerate(THRESHOLDS):
-                    out = out > t
-                    out = out.int()
-
-                    out, target = out.cpu(), target.cpu()
-                    dreem_metrics[i] += dreem_sleep_apnea_custom_metric(out, target)
-                """
-
             print(f"Validation loss: {loss_val / len(val_loader)}")
             logging.info(f"Validation loss: {loss_val / len(val_loader)}")
 
@@ -133,3 +122,4 @@ if __name__ == "__main__":
 
     now_str = dt.datetime.now().strftime("%m-%d-%Y_%H-%M")
     torch.save(model.state_dict, "./model/" + now_str + "_unet")
+
