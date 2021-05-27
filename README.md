@@ -1,2 +1,3 @@
-# land_cover_classification
+# Land Cover Segmentation
+
 Testing land cover classification techniques
